@@ -7,7 +7,7 @@ from core.config import settings
 
 # Initialize the free Gemini model using our config manager
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash", 
+    model="gemini-2.5-flash-lite", 
     temperature=0,
     google_api_key=settings.gemini_api_key
 )
