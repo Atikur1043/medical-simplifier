@@ -1,0 +1,21 @@
+fastapi
+uvicorn
+pydantic-settings
+
+# Security 
+presidio-analyzer
+presidio-anonymizer
+nemoguardrails
+
+# AI & Orchestration
+langchain-core<0.3.0
+langchain-google-genai
+langgraph
+langchain-qdrant
+qdrant-client
+
+# Telemetry
+openinference-instrumentation-langchain
+opentelemetry-sdk
+opentelemetry-exporter-otlp
+arize-phoenix
