@@ -23,7 +23,7 @@ yaml_content = """
 models:
   - type: main
     engine: google_genai
-    model: gemini-2.5-flash-lite
+    model: gemini-3.5-flash-lite
 """
 
 # Colang configuration with a SAFE path added

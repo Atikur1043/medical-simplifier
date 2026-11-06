@@ -1,31 +1,16 @@
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
-from qdrant_client.http.models import Distance, VectorParams
 from graph.state import MedicalGraphState
-from core.config import settings
 
-# Initialize the Google embedding model
-embeddings = GoogleGenerativeAIEmbeddings(
-    model="models/gemini-embedding-2",
-    google_api_key=settings.gemini_api_key
-)
+# 1. Initialize the exact same local model used in ingest.py
+embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
-# Connect to Qdrant (using in-memory for testing)
-client = QdrantClient(":memory:")
-COLLECTION_NAME = "medical_dictionary"
+# 2. Connect to local Qdrant folder
+client = QdrantClient(path="./qdrant_data")
+COLLECTION_NAME = "medical_dictionary_v4"
 
-# 1. Delete the existing collection if it exists to clear the old 768-dimension setup
-if client.collection_exists(COLLECTION_NAME):
-    client.delete_collection(COLLECTION_NAME)
-
-# 2. Recreate it with the correct 3072 dimensions
-client.create_collection(
-    collection_name=COLLECTION_NAME,
-    vectors_config=VectorParams(size=3072, distance=Distance.COSINE),
-)
-
-# 3. Initialize the vector store (removed the invalid force_recreate argument)
+# 3. Connect to the existing vector store (DO NOT delete or recreate it here)
 vector_store = QdrantVectorStore(
     client=client,
     collection_name=COLLECTION_NAME,

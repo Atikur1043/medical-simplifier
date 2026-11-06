@@ -7,7 +7,7 @@ from core.config import settings
 
 # Initialize the free Gemini model using our config manager
 llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash-lite", 
+    model="gemini-3.5-flash-lite", 
     temperature=0,
     google_api_key=settings.gemini_api_key
 )
@@ -44,6 +44,9 @@ def jargon_extractor_agent(state: MedicalGraphState):
     chain = prompt | structured_llm
     
     result = chain.invoke({"text": masked_text})
+    # Add a safety check to prevent the NoneType crash
+    if result is None or not hasattr(result, 'terms'):
+        return {"extracted_jargon": []}
     
     return {"extracted_jargon": result.terms}
 
