@@ -9,7 +9,6 @@ import google.generativeai as genai
 
 # Import our custom modules
 from core.config import settings
-from core.telemetry import setup_telemetry
 from security.pii_masking import PIIProcessor
 from security.guardrails import SecurityGuard
 from graph.workflow import run_medical_graph
@@ -20,7 +19,6 @@ genai.configure(api_key=settings.gemini_api_key)
 # 1. Initialize Telemetry on server startup
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    setup_telemetry()
     yield
     # Cleanup logic (if any) goes here
 
