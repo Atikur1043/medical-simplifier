@@ -1,10 +1,42 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import ReactMarkdown from "react-markdown";
+
 export default function Home() {
   const [text, setText] = useState("");
   const [response, setResponse] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setOcrLoading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/ocr-report`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      
+      if (data.error) {
+        alert(data.error);
+      } else {
+        setText(data.extracted_text);
+      }
+    } catch (err) {
+      alert("Failed to upload and extract text.");
+    }
+    
+    setOcrLoading(false);
+    // Reset input so the same file can be uploaded again if needed
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const handleProcess = async () => {
     if (!text.trim()) return;
@@ -39,21 +71,12 @@ export default function Home() {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
             <span className="text-sm font-medium">Dashboard</span>
           </button>
-          <button className="w-full flex items-center gap-3 text-gray-400 hover:text-white hover:bg-white/5 px-4 py-3 rounded-lg transition-all">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            <span className="text-sm font-medium">Reports</span>
-          </button>
-          <button className="w-full flex items-center gap-3 text-gray-400 hover:text-white hover:bg-white/5 px-4 py-3 rounded-lg transition-all">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-            <span className="text-sm font-medium">Security Logs</span>
-          </button>
         </nav>
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col p-4 overflow-y-auto">
         
-        {/* Header */}
         <header className="flex justify-between items-center py-4 px-2 mb-4">
           <div>
             <div className="text-xs text-gray-500 font-medium tracking-wide mb-1">Pages / Dashboard</div>
@@ -67,51 +90,44 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center relative overflow-hidden">
-            <div>
-              <p className="text-sm text-gray-500 font-medium">Reports Processed</p>
-              <h3 className="text-2xl font-bold text-gray-800 mt-1">1,204</h3>
-              <p className="text-xs text-green-500 font-medium mt-2">+12% from last week</p>
-            </div>
-            <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center text-white shadow-lg absolute -top-4 right-4 translate-y-8">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            </div>
-          </div>
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center relative overflow-hidden">
-            <div>
-              <p className="text-sm text-gray-500 font-medium">PII Entities Masked</p>
-              <h3 className="text-2xl font-bold text-gray-800 mt-1">4,390</h3>
-              <p className="text-xs text-green-500 font-medium mt-2">+5% from yesterday</p>
-            </div>
-            <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center text-white shadow-lg absolute -top-4 right-4 translate-y-8">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
-            </div>
-          </div>
-          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center relative overflow-hidden">
-            <div>
-              <p className="text-sm text-gray-500 font-medium">Guardrail Blocks</p>
-              <h3 className="text-2xl font-bold text-gray-800 mt-1">84</h3>
-              <p className="text-xs text-red-500 font-medium mt-2">Requires review</p>
-            </div>
-            <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center text-white shadow-lg absolute -top-4 right-4 translate-y-8">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-            </div>
-          </div>
-        </div>
-
         {/* Translation Module */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h2 className="text-lg font-bold text-gray-800 mb-1">New Translation Request</h2>
-          <p className="text-sm text-gray-500 mb-4">Enter clinical text to mask PII and extract medical definitions.</p>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 max-w-5xl">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h2 className="text-lg font-bold text-gray-800 mb-1">New Translation Request</h2>
+              <p className="text-sm text-gray-500">Enter clinical text or upload a scanned report (PDF/Image).</p>
+            </div>
+            
+            {/* Upload Button */}
+            <div>
+              <input 
+                type="file" 
+                accept="image/*,application/pdf" 
+                className="hidden" 
+                ref={fileInputRef} 
+                onChange={handleFileUpload}
+              />
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                disabled={ocrLoading}
+                className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50"
+              >
+                {ocrLoading ? (
+                  <svg className="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                )}
+                {ocrLoading ? "Extracting..." : "Upload File"}
+              </button>
+            </div>
+          </div>
           
           <textarea
             className="w-full p-4 border border-gray-200 rounded-lg h-40 text-sm text-gray-800 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none transition-all"
-            placeholder="Patient presents with..."
+            placeholder="Patient presents with... or click 'Upload File' to scan a report."
             value={text}
             onChange={(e) => setText(e.target.value)}
-            disabled={loading}
+            disabled={loading || ocrLoading}
           />
           
           <div className="mt-4 flex justify-end">
@@ -121,10 +137,7 @@ export default function Home() {
               className="bg-gray-900 hover:bg-gray-800 text-white font-medium px-6 py-2.5 rounded-lg text-sm shadow-md shadow-gray-900/20 disabled:opacity-50 flex items-center transition-all"
             >
               {loading && (
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
               )}
               {loading ? "Processing via API..." : "Run Security & Simplify"}
             </button>
